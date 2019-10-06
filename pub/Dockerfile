@@ -9,11 +9,11 @@ COPY ./ /src/github.com/balchua/gonuts
 RUN go mod download
 
 # Compile the application to /app.
-RUN go build -o /app -v .
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64  go build -o /app -v .
 
 # Now create separate deployment image
-FROM gcr.io/distroless/base
+FROM gcr.io/distroless/base:debug
 COPY --from=build /app /app
 # Cause full tracebacks; also serves to identify this image as a Go image for `skaffold debug`
 ENV GOTRACEBACK=all
-ENTRYPOINT ["/app"]
+ENTRYPOINT ["/app", "-s", "nats://stan-nats-ss.stan-nats-ss.stan.svc.cluster.local:4222", "-id","sample-pub", "Test"]

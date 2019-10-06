@@ -16,6 +16,16 @@ profiles:
         namespace: gonuts
       insecureRegistries: #Use this for local registry.  such as microk8s registry.
       - 10.152.183.39:5000
+    deploy:
+      helm:
+        releases:
+          - name: gonuts-pub
+            chartPath: k8s-manifest/pub
+            namespace: gonuts
+            wait: true
+            values:
+              image.repository: balchu/gonuts-pub
+
   - name: sub
     build:
       artifacts:
