@@ -1,0 +1,34 @@
+apiVersion: skaffold/v1beta15
+kind: Config
+profiles:
+  - name: pub
+    build:
+      artifacts:
+      - image: balchu/gonuts-pub
+        context: pub
+        kaniko:
+          dockerfile: Dockerfile
+          buildContext:
+            localDir: {}
+      cluster:
+        dockerConfig: 
+          secretName: regcred
+        namespace: gonuts
+      insecureRegistries: #Use this for local registry.  such as microk8s registry.
+      - 10.152.183.39:5000
+  - name: sub
+    build:
+      artifacts:
+      - image: balchu/gonuts-sub
+        context: sub
+        kaniko:
+          dockerfile: Dockerfile
+          buildContext:
+            localDir: {}
+      cluster:
+        dockerConfig: 
+          secretName: regcred
+        namespace: gonuts
+      insecureRegistries: #Use this for local registry.  such as microk8s registry.
+      - 10.152.183.39:5000
+
