@@ -1,0 +1,39 @@
+replicas: 1
+
+image:
+  repository: nats-streaming
+  tag: 0.16.2
+  pullPolicy: IfNotPresent
+
+service:
+  name: nats-streaming
+  type: NodePort
+  clientPort: 4222
+  monitorPort: 8222
+
+persistence:
+  nfs:
+    enabled: false
+    dynamic: false
+    storageClass:
+    region: 
+    zone: 
+    server: 
+    path: 
+    capacity: 20Gi
+    accessMode: ReadWriteMany
+    reclaimPolicy: Retain
+  local:
+    enabled: true
+    path: /tmp
+    capacity: 1Gi
+    accessMode: ReadWriteOnce
+    reclaimPolicy: Recycle
+
+resources: {}
+  # limits:
+  #  cpu: 100m
+  #  memory: 128Mi
+  # requests:
+  #  cpu: 100m
+  #  memory: 128Mi

@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ template "nats-ss.fullname" . }}
+  labels:
+    app: {{ template "nats-ss.name" . }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  serviceName: {{ template "nats-ss.name" . }}
+  replicas: {{ .Values.replicas }}
+  selector:
+    matchLabels:
+      app: {{ template "nats-ss.name" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "nats-ss.name" . }}
+        release: {{ .Release.Name }}
+    spec:
+      containers:
+      - name: {{ template "nats-ss.name" . }}
+        image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        command:
+          - /nats-streaming-server
+        args:
+          - -m=8222
+          - -st=FILE
+          - --dir=/nats-datastore
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        volumeMounts:
+        - mountPath: /nats-datastore
+          name: nats-datastore
+      volumes:
+      - name: nats-datastore
+        persistentVolumeClaim:
+          claimName: pvc-{{ template "nats-ss.name" . }}
+      {{- if .Values.persistence.nfs.enabled }}
+      nodeSelector:
+        failure-domain.beta.kubernetes.io/zone: {{ .Values.persistence.nfs.zone }}
+      {{- end -}}

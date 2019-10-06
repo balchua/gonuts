@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "nats-ss.fullname" . }}
+  labels:
+    app: {{ template "nats-ss.name" . }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - name: client
+      port: {{ .Values.service.clientPort }}
+      targetPort: {{ .Values.service.clientPort }}
+      protocol: TCP
+    - name: monitor
+      port: {{ .Values.service.monitorPort }}
+      targetPort: {{ .Values.service.monitorPort }}
+      protocol: TCP
+  selector:
+    app: {{ template "nats-ss.name" . }}
+    release: {{ .Release.Name }}

@@ -1,0 +1,38 @@
+{{- if or (.Values.persistence.local.enabled) (.Values.persistence.nfs.enabled) -}}
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-{{ template "nats-ss.name" . }}
+  labels:
+    app: {{ template "nats-ss.name" . }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+    {{- if .Values.persistence.nfs.enabled }}
+    failure-domain.beta.kubernetes.io/region: {{ .Values.persistence.nfs.region }}
+    failure-domain.beta.kubernetes.io/zone: {{ .Values.persistence.nfs.zone }}
+    type: nfs
+    {{- else if .Values.persistence.local.enabled }}
+    type: local
+    {{- end }}
+spec:
+  volumeMode: Filesystem
+  capacity:
+  {{- if .Values.persistence.nfs.enabled }}
+    storage: {{ .Values.persistence.nfs.capacity }}
+  accessModes:
+    - {{ .Values.persistence.nfs.accessMode }}
+  persistentVolumeReclaimPolicy: {{ .Values.persistence.nfs.reclaimPolicy }}
+  nfs:
+    path: {{ .Values.persistence.nfs.path }}
+    server: {{ .Values.persistence.nfs.server }}
+
+  {{- else if .Values.persistence.local.enabled }}
+    storage: {{ .Values.persistence.local.capacity }}
+  accessModes:
+    - {{ .Values.persistence.local.accessMode }}
+  persistentVolumeReclaimPolicy: {{ .Values.persistence.local.reclaimPolicy }}
+  hostPath:
+    path: {{ .Values.persistence.local.path }}
+  {{- end }}
+{{- end -}}

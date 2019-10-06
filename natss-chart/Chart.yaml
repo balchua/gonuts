@@ -1,0 +1,4 @@
+apiVersion: v1
+description: NATS Streaming Server
+name: nats-ss
+version: 0.0.1
