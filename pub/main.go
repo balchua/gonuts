@@ -37,8 +37,8 @@ func main() {
 
 	flag.StringVar(&URL, "s", stan.DefaultNatsURL, "The nats server URLs (separated by comma)")
 	flag.StringVar(&URL, "server", stan.DefaultNatsURL, "The nats server URLs (separated by comma)")
-	flag.StringVar(&clusterID, "c", "test-cluster", "The NATS Streaming cluster ID")
-	flag.StringVar(&clusterID, "cluster", "test-cluster", "The NATS Streaming cluster ID")
+	flag.StringVar(&clusterID, "c", "local-stan", "The NATS Streaming cluster ID")
+	flag.StringVar(&clusterID, "cluster", "local-stan", "The NATS Streaming cluster ID")
 	flag.StringVar(&clientID, "id", "stan-pub", "The NATS Streaming client ID to connect with")
 	flag.StringVar(&clientID, "clientid", "stan-pub", "The NATS Streaming client ID to connect with")
 	flag.StringVar(&userCreds, "cr", "", "Credentials File")
@@ -55,7 +55,7 @@ func main() {
 	}
 
 	// Connect Options.
-	opts := []nats.Option{nats.Name("NATS Streaming Example Publisher")}
+	opts := []nats.Option{nats.Name("Go Nuts Publisher")}
 	// Use UserCredentials
 	if userCreds != "" {
 		opts = append(opts, nats.UserCredentials(userCreds))

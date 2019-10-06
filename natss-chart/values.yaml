@@ -12,17 +12,6 @@ service:
   monitorPort: 8222
 
 persistence:
-  nfs:
-    enabled: false
-    dynamic: false
-    storageClass:
-    region: 
-    zone: 
-    server: 
-    path: 
-    capacity: 20Gi
-    accessMode: ReadWriteMany
-    reclaimPolicy: Retain
   local:
     enabled: true
     path: /tmp

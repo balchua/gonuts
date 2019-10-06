@@ -29,6 +29,7 @@ spec:
           - -m=8222
           - -st=FILE
           - --dir=/nats-datastore
+          - --cluster_id=local-stan
         env:
         - name: POD_NAME
           valueFrom:
@@ -37,11 +38,13 @@ spec:
         volumeMounts:
         - mountPath: /nats-datastore
           name: nats-datastore
-      volumes:
-      - name: nats-datastore
-        persistentVolumeClaim:
-          claimName: pvc-{{ template "nats-ss.name" . }}
-      {{- if .Values.persistence.nfs.enabled }}
-      nodeSelector:
-        failure-domain.beta.kubernetes.io/zone: {{ .Values.persistence.nfs.zone }}
-      {{- end -}}
+  volumeClaimTemplates:
+    - metadata:
+        name: nats-datastore
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 1Gi
+        storageClassName: microk8s-hostpath
+

@@ -39,13 +39,13 @@ func usage() {
 }
 
 func printMsg(m *stan.Msg, i int) {
-//	if !m.Redelivered {
+	//	if !m.Redelivered {
 
-		log.Printf("[#%d] Received: %s\n", i, m)
-		time.Sleep(100 * time.Millisecond)
-        if err := m.Ack(); err != nil {
-            log.Fatal(err)
-        }
+	log.Printf("[#%d] Received: %s\n", i, m)
+	time.Sleep(100 * time.Millisecond)
+	if err := m.Ack(); err != nil {
+		log.Fatal(err)
+	}
 }
 
 func main() {
@@ -66,8 +66,8 @@ func main() {
 
 	flag.StringVar(&URL, "s", stan.DefaultNatsURL, "The nats server URLs (separated by comma)")
 	flag.StringVar(&URL, "server", stan.DefaultNatsURL, "The nats server URLs (separated by comma)")
-	flag.StringVar(&clusterID, "c", "test-cluster", "The NATS Streaming cluster ID")
-	flag.StringVar(&clusterID, "cluster", "test-cluster", "The NATS Streaming cluster ID")
+	flag.StringVar(&clusterID, "c", "local-stan", "The NATS Streaming cluster ID")
+	flag.StringVar(&clusterID, "cluster", "local-stan", "The NATS Streaming cluster ID")
 	flag.StringVar(&clientID, "id", "stan-sub", "The NATS Streaming client ID to connect with")
 	flag.StringVar(&clientID, "clientid", "stan-sub", "The NATS Streaming client ID to connect with")
 	flag.BoolVar(&showTime, "t", false, "Display timestamps")
@@ -96,7 +96,7 @@ func main() {
 	}
 
 	// Connect Options.
-	opts := []nats.Option{nats.Name("NATS Streaming Example Subscriber")}
+	opts := []nats.Option{nats.Name("Go Nuts Subscriber")}
 	// Use UserCredentials
 	if userCreds != "" {
 		opts = append(opts, nats.UserCredentials(userCreds))
