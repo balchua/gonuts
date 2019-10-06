@@ -10,3 +10,7 @@ Go to directory `natss-chart`
 
 ### starting the publisher
 `pub -s nats://10.152.183.228:4222 -id sample-pub Test `
+
+### Delete nats streaming
+
+`helm del --purge stan`
