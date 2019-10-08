@@ -78,7 +78,7 @@ func main() {
 
 	for {
 		t := time.Now()
-		msg := []byte("MsgTimeNow: " + t.String())
+		msg := []byte("Message is : " + t.String())
 		err = sc.Publish(subj, msg)
 		if err != nil {
 			log.Fatalf("Error during publish: %v\n", err)

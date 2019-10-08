@@ -138,7 +138,7 @@ func main() {
 	subj, i := args[0], 0
 	mcb := func(msg *stan.Msg) {
 		i++
-		time.Sleep(500 * time.Millisecond)
+		time.Sleep(10000 * time.Millisecond)
 		printMsg(msg, i)
 	}
 

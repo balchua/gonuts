@@ -10,6 +10,9 @@ profiles:
           dockerfile: Dockerfile
           buildContext:
             localDir: {}
+          cache:
+            repo: balchu/gonuts-pub #for the layers in the Dockerfile
+            hostPath: /var/snap/microk8s/common/default-storage/gonuts-kaniko-cache-claim-pvc-c3369195-6722-4483-90cb-7673df62072b #for the base images pulled by kaniko warmer
       cluster:
         dockerConfig: 
           secretName: regcred
@@ -35,10 +38,21 @@ profiles:
           dockerfile: Dockerfile
           buildContext:
             localDir: {}
+          cache:
+            repo: balchu/gonuts-sub          
       cluster:
         dockerConfig: 
           secretName: regcred
         namespace: gonuts
       insecureRegistries: #Use this for local registry.  such as microk8s registry.
       - 10.152.183.39:5000
+    deploy:
+      helm:
+        releases:
+          - name: gonuts-sub
+            chartPath: k8s-manifest/sub
+            namespace: gonuts
+            wait: true
+            values:
+              image.repository: balchu/gonuts-sub
 
