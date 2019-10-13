@@ -6,7 +6,6 @@ import (
 	"log"
 	"os"
 	"os/signal"
-	"strconv"
 	"time"
 
 	nats "github.com/nats-io/nats.go"
@@ -109,9 +108,6 @@ func main() {
 		log.Fatal(err)
 	}
 	defer nc.Close()
-
-	time.Sleep(3 * time.Second)
-	clientID = clientID + strconv.FormatInt(time.Now().Unix(), 10)
 
 	log.Printf("Client ID is %s", clientID)
 	sc, err := stan.Connect(clusterID, clientID, stan.NatsConn(nc),
