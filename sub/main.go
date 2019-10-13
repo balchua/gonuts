@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"strconv"
 	"time"
 
 	nats "github.com/nats-io/nats.go"
@@ -109,6 +110,10 @@ func main() {
 	}
 	defer nc.Close()
 
+	time.Sleep(3 * time.Second)
+	clientID = clientID + strconv.FormatInt(time.Now().Unix(), 10)
+
+	log.Printf("Client ID is %s", clientID)
 	sc, err := stan.Connect(clusterID, clientID, stan.NatsConn(nc),
 		stan.SetConnectionLostHandler(func(_ stan.Conn, reason error) {
 			log.Fatalf("Connection lost, reason: %v", reason)
@@ -138,7 +143,7 @@ func main() {
 	subj, i := args[0], 0
 	mcb := func(msg *stan.Msg) {
 		i++
-		time.Sleep(10000 * time.Millisecond)
+		time.Sleep(100 * time.Millisecond)
 		printMsg(msg, i)
 	}
 

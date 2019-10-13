@@ -24,6 +24,4 @@ spec:
           args: ["-id", "$(CLIENT_ID)", "-s", "nats://stan-nats-ss.stan.svc.cluster.local:4222","--durable","ImDurable", "--qgroup", "grp1", "Test"]   
           env:
           - name: CLIENT_ID
-            valueFrom:
-              fieldRef:
-                fieldPath: metadata.name
+            value: "stan-sub"

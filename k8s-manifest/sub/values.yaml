@@ -5,8 +5,8 @@
 replicaCount: 1
 
 image:
-  repository: balchu/gonuts-sub
-  pullPolicy: IfNotPresent
+  repository: localhost:32000/gonuts-sub:SNAPSHOT
+  pullPolicy: Always
 
 imagePullSecrets: []
 nameOverride: ""

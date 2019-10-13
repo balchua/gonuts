@@ -5,7 +5,7 @@
 replicaCount: 1
 
 image:
-  repository: balchu/gonuts-pub
+  repository: localhost:32000/gonuts-pub:SNAPSHOT
   pullPolicy: IfNotPresent
 
 imagePullSecrets: []
