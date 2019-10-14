@@ -12,7 +12,7 @@ imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
 
-delayInBetweenPublish: 5000
+delayInBetweenPublish: 500
 subject: "Test"
 natsStreamingServerEndpoint: "nats://stan-nats-ss.stan.svc.cluster.local:4222"
 

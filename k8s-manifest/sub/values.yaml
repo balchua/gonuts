@@ -12,7 +12,7 @@ imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
 
-delayInBetweenConsumption: 500
+delayInBetweenConsumption: 5000
 durableName: "ImDurable"
 queueGroup: "grp1"
 subject: "Test"

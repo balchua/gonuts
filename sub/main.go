@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"strconv"
 	"time"
 
 	nats "github.com/nats-io/nats.go"
@@ -19,7 +20,6 @@ Usage: stan-sub [options] <subject>
 Options:
 	-s,  --server   <url>            NATS Streaming server URL(s)
 	-c,  --cluster  <cluster name>   NATS Streaming cluster name
-	-id, --clientid <client ID>      NATS Streaming client ID
 	-cr, --creds    <credentials>    NATS 2.0 Credentials
 
 Subscription Options:
@@ -30,6 +30,7 @@ Subscription Options:
 	--seq    <seqno>                 Start at seqno
 	--new_only                       Only deliver new messages
 	--durable <name>                 Durable subscriber name
+	--delay <in milliseconds>        Delay in milliseconds between consumption
 	--unsub                          Unsubscribe the durable on exit
 `
 
@@ -69,8 +70,6 @@ func main() {
 	flag.StringVar(&URL, "server", stan.DefaultNatsURL, "The nats server URLs (separated by comma)")
 	flag.StringVar(&clusterID, "c", "local-stan", "The NATS Streaming cluster ID")
 	flag.StringVar(&clusterID, "cluster", "local-stan", "The NATS Streaming cluster ID")
-	flag.StringVar(&clientID, "id", "stan-sub", "The NATS Streaming client ID to connect with")
-	flag.StringVar(&clientID, "clientid", "stan-sub", "The NATS Streaming client ID to connect with")
 	flag.BoolVar(&showTime, "t", false, "Display timestamps")
 	// Subscription options
 	flag.Uint64Var(&startSeq, "seq", 0, "Start at sequence no.")
@@ -111,6 +110,8 @@ func main() {
 		log.Fatal(err)
 	}
 	defer nc.Close()
+
+	clientID = strconv.FormatInt(time.Now().UnixNano(), 10)
 
 	log.Printf("Client ID is %s", clientID)
 	sc, err := stan.Connect(clusterID, clientID, stan.NatsConn(nc),

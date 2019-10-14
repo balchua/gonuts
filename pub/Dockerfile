@@ -20,4 +20,4 @@ FROM gcr.io/distroless/base:debug
 COPY --from=build /app /app
 # Cause full tracebacks; also serves to identify this image as a Go image for `skaffold debug`
 ENV GOTRACEBACK=all
-ENTRYPOINT ["/app", "-s", "nats://stan-nats-ss.stan.svc.cluster.local:4222", "-id","sample-pub", "Test"]
+ENTRYPOINT ["/app", "-s", "nats://stan-nats-ss.stan.svc.cluster.local:4222", "Test"]
