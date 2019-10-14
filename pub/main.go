@@ -19,6 +19,7 @@ Options:
 	-c,  --cluster  <cluster name>   NATS Streaming cluster name
 	-id, --clientid <client ID>      NATS Streaming client ID
 	-cr, --creds    <credentials>    NATS 2.0 Credentials
+	-d, --delay <delay in seconds>
 `
 
 // NOTE: Use tls scheme for TLS, e.g. stan-pub -s tls://demo.nats.io:4443 foo hello
@@ -33,6 +34,7 @@ func main() {
 		clientID  string
 		URL       string
 		userCreds string
+		delay     int
 	)
 
 	flag.StringVar(&URL, "s", stan.DefaultNatsURL, "The nats server URLs (separated by comma)")
@@ -43,6 +45,8 @@ func main() {
 	flag.StringVar(&clientID, "clientid", "stan-pub", "The NATS Streaming client ID to connect with")
 	flag.StringVar(&userCreds, "cr", "", "Credentials File")
 	flag.StringVar(&userCreds, "creds", "", "Credentials File")
+	flag.IntVar(&delay, "d", 1000, "Delay in seconds between publishing message")
+	flag.IntVar(&delay, "delay", 1000, "Delay in seconds between publishing message")
 
 	log.SetFlags(0)
 	flag.Usage = usage
@@ -84,6 +88,6 @@ func main() {
 			log.Fatalf("Error during publish: %v\n", err)
 		}
 		log.Printf("Published [%s] : '%s'\n", subj, msg)
-		time.Sleep(1 * time.Second)
+		time.Sleep(time.Duration(delay) * time.Millisecond)
 	}
 }

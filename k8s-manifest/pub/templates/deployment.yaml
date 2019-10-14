@@ -21,7 +21,7 @@ spec:
           image: "{{ .Values.image.repository }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           command: ["/app"]
-          args: ["-id", "$(CLIENT_ID)", "-s", "nats://stan-nats-ss.stan.svc.cluster.local:4222", "Test"]   
+          args: ["-id", "$(CLIENT_ID)", "-s", "{{ .Values.natsStreamingServerEndpoint }}", "-d", "{{ .Values.delayInBetweenPublish }}", "{{ .Values.subject }}"]   
           env:
           - name: CLIENT_ID
             valueFrom:

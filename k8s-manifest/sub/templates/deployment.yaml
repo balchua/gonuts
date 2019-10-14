@@ -21,7 +21,7 @@ spec:
           image: "{{ .Values.image.repository }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           command: ["/app"]
-          args: ["-id", "$(CLIENT_ID)", "-s", "nats://stan-nats-ss.stan.svc.cluster.local:4222","--durable","ImDurable", "--qgroup", "grp1", "Test"]   
+          args: ["-id", "$(CLIENT_ID)","-d", "1000", "-s", "{{ .Values.natsStreamingServerEndpoint }}","--durable","{{ .Values.durableName }}", "--qgroup", "{{ .Values.queueGroup }}", "{{ .Values.subject }}"]   
           env:
           - name: CLIENT_ID
             valueFrom:

@@ -12,3 +12,8 @@ imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
 
+delayInBetweenConsumption: 500
+durableName: "ImDurable"
+queueGroup: "grp1"
+subject: "Test"
+natsStreamingServerEndpoint: "nats://stan-nats-ss.stan.svc.cluster.local:4222"

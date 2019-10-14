@@ -62,6 +62,7 @@ func main() {
 		newOnly             bool
 		deliverLast         bool
 		durable             string
+		delay               int
 	)
 
 	flag.StringVar(&URL, "s", stan.DefaultNatsURL, "The nats server URLs (separated by comma)")
@@ -83,6 +84,8 @@ func main() {
 	flag.BoolVar(&unsubscribe, "unsubscribe", false, "Unsubscribe the durable on exit")
 	flag.StringVar(&userCreds, "cr", "", "Credentials File")
 	flag.StringVar(&userCreds, "creds", "", "Credentials File")
+	flag.IntVar(&delay, "d", 1000, "Delay in seconds between publishing message")
+	flag.IntVar(&delay, "delay", 1000, "Delay in seconds between publishing message")
 
 	log.SetFlags(0)
 	flag.Usage = usage
@@ -139,7 +142,7 @@ func main() {
 	subj, i := args[0], 0
 	mcb := func(msg *stan.Msg) {
 		i++
-		time.Sleep(100 * time.Millisecond)
+		time.Sleep(time.Duration(delay) * time.Millisecond)
 		printMsg(msg, i)
 	}
 
