@@ -21,4 +21,4 @@ spec:
           image: "{{ .Values.image.repository }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           command: ["/app"]
-          args: ["-d", "1000", "-s", "{{ .Values.natsStreamingServerEndpoint }}","--durable","{{ .Values.durableName }}", "--qgroup", "{{ .Values.queueGroup }}", "{{ .Values.subject }}"]   
+          args: ["-d", "{{ .Values.delayInBetweenConsumption }}", "-s", "{{ .Values.natsStreamingServerEndpoint }}","--durable","{{ .Values.durableName }}", "--qgroup", "{{ .Values.queueGroup }}", "{{ .Values.subject }}"]   
