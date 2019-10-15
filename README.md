@@ -423,6 +423,44 @@ $ kubectl -n gonuts get pods
 No resources found in gonuts namespace.
 ```
 
+### Changing the ScaledObject
+
+You can change the values in file [`keda-nats-scaler/stan_scaledobject.yaml`](keda-nats-scaler/stan_scaledobject.yaml)
+
+Example:
+
+```yaml
+apiVersion: keda.k8s.io/v1alpha1
+kind: ScaledObject
+metadata:
+  name: stan-scaledobject
+  namespace: gonuts
+  labels:
+    deploymentName: gonuts-sub
+spec:
+  pollingInterval: 10   # Optional. Default: 30 seconds
+  cooldownPeriod: 30   # Optional. Default: 300 seconds
+  minReplicaCount: 0   # Optional. Default: 0
+  maxReplicaCount: 30  # Optional. Default: 100  
+  scaleTargetRef:
+    deploymentName: gonuts-sub
+  triggers:
+  - type: stan
+    metadata:
+      natsServerMonitoringEndpoint: "stan-nats-ss.stan.svc.cluster.local:8222"
+      queueGroup: "grp1"
+      durableName: "ImDurable"
+      subject: "Test"
+      lagThreshold: "10"
+```
+
+Where:
+
+* `natsServerMonitoringEndpoint` : Is the location of the Nats Streaming monitoring endpoint.  In this example it is the FQDN of nats streaming deployed.
+* `queuGroup` : The queue group name of the subscribers.
+* `durableName` :  Must identify the durability name used by the subscribers.
+* `subject` : Sometimes called the channel name.
+* `lagThreshold` : This value is used to tell the Horizontal Pod Autoscaler to use as TargetAverageValue.
 
 
 ### Clean up
