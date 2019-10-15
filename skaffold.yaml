@@ -5,18 +5,18 @@ profiles:
     build:
       tagPolicy:
         envTemplate:
-          template: "{{.IMAGE_NAME}}:{{.SNAPSHOT}}"
+          template: "{{.IMAGE_NAME}}:{{.PUB_TAG}}"
       insecureRegistries: #Use this for local registry.  such as microk8s registry.
       - 192.168.1.12:32000 
       artifacts:
-      - image: 192.168.1.12:32000/gonuts-pub
+      - image: balchu/gonuts-pub
         context: pub
         kaniko:
           dockerfile: Dockerfile
           buildContext:
             localDir: {}
           cache:
-            repo: 192.168.1.12:32000/gonuts-pub #for the layers in the Dockerfile
+            repo: balchu/gonuts-pub #for the layers in the Dockerfile
       cluster:
         dockerConfig: 
           secretName: regcred
@@ -35,18 +35,18 @@ profiles:
     build:
       tagPolicy:
         envTemplate:
-          template: "{{.IMAGE_NAME}}:{{.SNAPSHOT}}"
+          template: "{{.IMAGE_NAME}}:{{.SUB_TAG}}"
       insecureRegistries: #Use this for local registry.  such as microk8s registry.
       - 192.168.1.12:32000 
       artifacts:
-      - image: 192.168.1.12:32000/gonuts-sub
+      - image: balchu/gonuts-sub
         context: sub
         kaniko:
           dockerfile: Dockerfile
           buildContext:
             localDir: {}
           cache:
-            repo: 192.168.1.12:32000/gonuts-sub          
+            repo: balchu/gonuts-sub          
       cluster:
         dockerConfig: 
           secretName: regcred
