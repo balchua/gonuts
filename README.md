@@ -111,7 +111,7 @@ profiles:
 
 
 
-#### Building and run the publisher
+#### Build and run the publisher
 
 Go to the project's root directory and execute the command below.
 
@@ -194,7 +194,7 @@ gonuts-pub-75fbd86dd8-5z6b8   1/1     Running   0          51s
 
 ```
 
-#### Building and run the subscriber
+#### Build and run the subscriber
 
 To install the publisher application, the process is the same, simply run the command below.
 
