@@ -328,7 +328,7 @@ NAME                    READY   STATUS    RESTARTS   AGE
 keda-67df4596b6-4zkgr   1/1     Running   0          6s
 ```
 
-#### Apply the `keda-nats-scaler/stan_scaledobject.yaml`
+#### Apply the [`keda-nats-scaler/stan_scaledobject.yaml`](keda-nats-scaler/stan_scaledobject.yaml)
 
 After applying the scaler, you should see the pods scale up.
 
