@@ -32,11 +32,14 @@ Go to directory `natss-chart`
 
 ### 2. Building the sources
 
-Since we are using skaffold to quickly build and deploy the application, we are going to use the `envTemplate` `SNAPSHOT` tag.  For more information on using skaffold Taggers [here](https://skaffold.dev/docs/how-tos/taggers/).
+Since we are using skaffold to quickly build and deploy the application, we are going to use the `envTemplate` `PUB_TAG` tag.  For more information on using skaffold Taggers [here](https://skaffold.dev/docs/how-tos/taggers/).
 
 
 **We use kaniko with skaffold to build our container image in-cluster**
 
+Setup kaniko registry access secret
+
+`kubectl -n gonuts create secret generic regcred --from-file $HOME/.docker/config.json`
 
 To enable that, simply execute the command:
 

@@ -1,3 +1,16 @@
+// Copyright 2016-2018 The NATS Authors
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package main
 
 import (
@@ -56,12 +69,6 @@ func main() {
 		userCreds           string
 		showTime            bool
 		qgroup              string
-		unsubscribe         bool
-		startSeq            uint64
-		startDelta          string
-		deliverAll          bool
-		newOnly             bool
-		deliverLast         bool
 		durable             string
 		delay               int
 	)
@@ -72,15 +79,8 @@ func main() {
 	flag.StringVar(&clusterID, "cluster", "local-stan", "The NATS Streaming cluster ID")
 	flag.BoolVar(&showTime, "t", false, "Display timestamps")
 	// Subscription options
-	flag.Uint64Var(&startSeq, "seq", 0, "Start at sequence no.")
-	flag.BoolVar(&deliverAll, "all", true, "Deliver all")
-	flag.BoolVar(&newOnly, "new_only", false, "Only new messages")
-	flag.BoolVar(&deliverLast, "last", false, "Start with last value")
-	flag.StringVar(&startDelta, "since", "", "Deliver messages since specified time offset")
 	flag.StringVar(&durable, "durable", "", "Durable subscriber name")
 	flag.StringVar(&qgroup, "qgroup", "", "Queue group name")
-	flag.BoolVar(&unsubscribe, "unsub", false, "Unsubscribe the durable on exit")
-	flag.BoolVar(&unsubscribe, "unsubscribe", false, "Unsubscribe the durable on exit")
 	flag.StringVar(&userCreds, "cr", "", "Credentials File")
 	flag.StringVar(&userCreds, "creds", "", "Credentials File")
 	flag.IntVar(&delay, "d", 1000, "Delay in seconds between publishing message")
@@ -125,20 +125,6 @@ func main() {
 
 	// Process Subscriber Options.
 	startOpt := stan.StartAt(pb.StartPosition_NewOnly)
-	if startSeq != 0 {
-		startOpt = stan.StartAtSequence(startSeq)
-	} else if deliverLast {
-		startOpt = stan.StartWithLastReceived()
-	} else if deliverAll && !newOnly {
-		startOpt = stan.DeliverAllAvailable()
-	} else if startDelta != "" {
-		ago, err := time.ParseDuration(startDelta)
-		if err != nil {
-			sc.Close()
-			log.Fatal(err)
-		}
-		startOpt = stan.StartAtTimeDelta(ago)
-	}
 
 	subj, i := args[0], 0
 	mcb := func(msg *stan.Msg) {
@@ -147,7 +133,7 @@ func main() {
 		printMsg(msg, i)
 	}
 
-	sub, err := sc.QueueSubscribe(subj, qgroup, mcb, startOpt, stan.DurableName(durable), stan.SetManualAckMode(), stan.MaxInflight(1))
+	_, err = sc.QueueSubscribe(subj, qgroup, mcb, startOpt, stan.DurableName(durable), stan.SetManualAckMode(), stan.MaxInflight(1))
 	if err != nil {
 		sc.Close()
 		log.Fatal(err)
@@ -167,10 +153,6 @@ func main() {
 	go func() {
 		for range signalChan {
 			fmt.Printf("\nReceived an interrupt, unsubscribing and closing connection...\n\n")
-			// Do not unsubscribe a durable on exit, except if asked to.
-			if durable == "" || unsubscribe {
-				sub.Unsubscribe()
-			}
 			sc.Close()
 			cleanupDone <- true
 		}
