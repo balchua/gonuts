@@ -80,8 +80,8 @@ profiles:
             chartPath: k8s-manifest/pub
             namespace: gonuts
             wait: true
-            imageStrategy: 
-              helm: {}
+            setValueTemplates: 
+              image.repository: "{{.IMAGE_NAME}}:{{.SUB_TAG}}"
 
   - name: sub
     build:
@@ -107,8 +107,8 @@ profiles:
           - name: gonuts-sub
             chartPath: k8s-manifest/sub
             namespace: gonuts
-            imageStrategy: 
-              helm: {}
+            setValueTemplates: 
+              image.repository: "{{.IMAGE_NAME}}:{{.SUB_TAG}}"
 
 ```
 
