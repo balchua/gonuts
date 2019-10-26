@@ -37,14 +37,8 @@ Options:
 
 Subscription Options:
 	--qgroup <name>                  Queue group
-	--all                            Deliver all available messages
-	--last                           Deliver starting with last published message
-	--since  <time_ago>              Deliver messages in last interval (e.g. 1s, 1hr)
-	--seq    <seqno>                 Start at seqno
-	--new_only                       Only deliver new messages
 	--durable <name>                 Durable subscriber name
 	--delay <in milliseconds>        Delay in milliseconds between consumption
-	--unsub                          Unsubscribe the durable on exit
 `
 
 // NOTE: Use tls scheme for TLS, e.g. stan-sub -s tls://demo.nats.io:4443 foo

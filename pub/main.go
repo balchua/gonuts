@@ -69,7 +69,7 @@ func main() {
 	}
 
 	// Connect Options.
-	opts := []nats.Option{nats.Name("Go Nuts Publisher")}
+	opts := []nats.Option{nats.Name("Gonuts Publisher")}
 	// Use UserCredentials
 	if userCreds != "" {
 		opts = append(opts, nats.UserCredentials(userCreds))
