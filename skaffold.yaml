@@ -1,22 +1,19 @@
-apiVersion: skaffold/v1beta15
+apiVersion: skaffold/v1beta16
 kind: Config
 profiles:
   - name: pub
     build:
-      tagPolicy:
-        envTemplate:
-          template: "{{.IMAGE_NAME}}:{{.PUB_TAG}}"
       insecureRegistries: #Use this for local registry.  such as microk8s registry.
       - 192.168.1.12:32000 
       artifacts:
-      - image: balchu/gonuts-pub
+      - image: 192.168.1.12:32000/gonuts-pub
         context: pub
         kaniko:
           dockerfile: Dockerfile
           buildContext:
             localDir: {}
           cache:
-            repo: balchu/gonuts-pub #for the layers in the Dockerfile
+            repo: 192.168.1.12:32000/gonuts-pub #for the layers in the Dockerfile
       cluster:
         dockerConfig: 
           secretName: regcred
@@ -28,26 +25,23 @@ profiles:
             chartPath: k8s-manifest/pub
             namespace: gonuts
             wait: true
-            setValueTemplates: 
-              image.repository: "{{.IMAGE_NAME}}:{{.SUB_TAG}}"
+            values:
+              image.repository: 192.168.1.12:32000/gonuts-pub
 
 
   - name: sub
     build:
-      tagPolicy:
-        envTemplate:
-          template: "{{.IMAGE_NAME}}:{{.SUB_TAG}}"
       insecureRegistries: #Use this for local registry.  such as microk8s registry.
       - 192.168.1.12:32000 
       artifacts:
-      - image: balchu/gonuts-sub
+      - image: 192.168.1.12:32000/gonuts-sub
         context: sub
         kaniko:
           dockerfile: Dockerfile
           buildContext:
             localDir: {}
           cache:
-            repo: balchu/gonuts-sub          
+            repo: 192.168.1.12:32000/gonuts-sub          
       cluster:
         dockerConfig: 
           secretName: regcred
@@ -59,7 +53,7 @@ profiles:
             chartPath: k8s-manifest/sub
             namespace: gonuts
             wait: true
-            setValueTemplates: 
-              image.repository: "{{.IMAGE_NAME}}:{{.SUB_TAG}}"
+            values:
+              image.repository: 192.168.1.12:32000/gonuts-sub
 
 

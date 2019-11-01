@@ -5,7 +5,7 @@
 replicaCount: 1
 
 image:
-  repository: balchua/gonuts-sub:SNAPSHOT
+  repository: 192.168.1.12:32000/gonuts-sub
   pullPolicy: Always
 
 imagePullSecrets: []

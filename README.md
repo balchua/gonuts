@@ -41,12 +41,6 @@ Setup kaniko registry access secret
 
 `kubectl -n gonuts create secret generic regcred --from-file $HOME/.docker/config.json`
 
-To enable that, simply execute the command:
-
-```shell
-export PUB_TAG=0.0.1
-export SUB_TAG=0.0.1
-```
 
 Modify the docker registry repository in the `skaffold.yaml` file.  Example below:
 
@@ -57,9 +51,6 @@ kind: Config
 profiles:
   - name: pub
     build:
-      tagPolicy:
-        envTemplate:
-          template: "{{.IMAGE_NAME}}:{{.PUB_TAG}}"
       artifacts:
       - image: <your-repo>/gonuts-pub
         context: pub
@@ -80,14 +71,11 @@ profiles:
             chartPath: k8s-manifest/pub
             namespace: gonuts
             wait: true
-            setValueTemplates: 
-              image.repository: "{{.IMAGE_NAME}}:{{.SUB_TAG}}"
+            values: 
+              image.repository: <your-repo>/gonuts-pub
 
   - name: sub
     build:
-      tagPolicy:
-        envTemplate:
-          template: "{{.IMAGE_NAME}}:{{.SUB_TAG}}"
       artifacts:
       - image: <your-repo>/gonuts-sub
         context: sub
@@ -107,12 +95,10 @@ profiles:
           - name: gonuts-sub
             chartPath: k8s-manifest/sub
             namespace: gonuts
-            setValueTemplates: 
-              image.repository: "{{.IMAGE_NAME}}:{{.SUB_TAG}}"
+            values: 
+              image.repository: <your-repo>/gonuts-sub
 
 ```
-
-
 
 #### Build and run the publisher
 
@@ -126,37 +112,19 @@ You should see some logs which looks like this.
 
 $ skaffold run -p pub
 Generating tags...
- - balchu/gonuts-pub -> balchu/gonuts-pub:0.0.1
-Tags generated in 101.669µs
+ - 192.168.1.12:32000/gonuts-sub -> 192.168.1.12:32000/gonuts-sub:5ab46ba
 Checking cache...
- - balchu/gonuts-pub: Not found. Building
-Cache check complete in 5.733820277s
-Starting build...
+ - 192.168.1.12:32000/gonuts-sub: Not found. Building
 Creating docker config secret [regcred]...
-Building [balchu/gonuts-pub]...
-Storing build context at /tmp/context-034c09199c16fd9aca770e65c599c609.tar.gz
-INFO[0003] Resolved base name golang:1.12.10 to golang:1.12.10 
-INFO[0003] Resolved base name gcr.io/distroless/base:debug to gcr.io/distroless/base:debug 
-INFO[0003] Resolved base name golang:1.12.10 to golang:1.12.10 
-INFO[0003] Resolved base name gcr.io/distroless/base:debug to gcr.io/distroless/base:debug 
+Building [192.168.1.12:32000/gonuts-sub]...
+Storing build context at /tmp/context-f42376857262386c48fc128506c21176.tar.gz
+INFO[0000] Resolved base name golang:1.12.10 to golang:1.12.10 
+INFO[0000] Resolved base name gcr.io/distroless/base to gcr.io/distroless/base 
+INFO[0000] Resolved base name golang:1.12.10 to golang:1.12.10 
+INFO[0000] Resolved base name gcr.io/distroless/base to gcr.io/distroless/base 
+INFO[0000] Downloading base image golang:1.12.10        
+INFO[0003] Error while retrieving image from cache: getting file info: stat /cache/sha256:e699a540de350a0993ce3a3f8238161e5c26bbf728bffe1dc1f75952a987ea30: no such file or directory 
 INFO[0003] Downloading base image golang:1.12.10        
-INFO[0007] Error while retrieving image from cache: getting file info: stat /cache/sha256:e699a540de350a0993ce3a3f8238161e5c26bbf728bffe1dc1f75952a987ea30: no such file or directory 
-INFO[0007] Downloading base image golang:1.12.10        
-INFO[0009] Downloading base image gcr.io/distroless/base:debug 
-INFO[0010] Error while retrieving image from cache: getting file info: stat /cache/sha256:17e79ba9bc7931acbd58fa02569941fc13247319d50248cfdbc3edfec83c1a56: no such file or directory 
-INFO[0010] Downloading base image gcr.io/distroless/base:debug 
-INFO[0011] Built cross stage deps: map[0:[/app]]        
-INFO[0011] Downloading base image golang:1.12.10        
-INFO[0013] Error while retrieving image from cache: getting file info: stat /cache/sha256:e699a540de350a0993ce3a3f8238161e5c26bbf728bffe1dc1f75952a987ea30: no such file or directory 
-INFO[0013] Downloading base image golang:1.12.10        
-INFO[0016] Using files from context: [/kaniko/buildcontext/go.mod] 
-INFO[0016] Using files from context: [/kaniko/buildcontext/go.sum] 
-INFO[0016] Checking for cached layer balchu/gonuts-pub:ed603050d60bbe591c2de599f736ff5d6f71298ecc5179ac1015426aecdeeb14... 
-INFO[0019] Using caching version of cmd: RUN go mod download 
-INFO[0019] Using files from context: [/kaniko/buildcontext/main.go] 
-INFO[0019] Checking for cached layer balchu/gonuts-pub:ab09c19c67caf03b2277ac14348650fec3bc7d815676ab6ea48fe9cab229d9da... 
-INFO[0021] No cached layer found for cmd RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64  go build -o /app -v . 
-INFO[0021] Unpacking rootfs as cmd RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64  go build -o /app -v . requires it. 
 
 ```
 
