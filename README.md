@@ -1,4 +1,6 @@
 # Sample Go NATS Streaming program with KEDA.
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fbalchua%2Fgonuts.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fbalchua%2Fgonuts?ref=badge_shield)
+
 
 This repo contains sample Go code to publish and subscribe message from [NATS Streaming](https://github.com/nats-io/nats-streaming-server) using [Keda](https://github.com/kedacore/keda) to autoscale the consumers.
 
@@ -441,3 +443,6 @@ $ skaffold delete -p sub
 $ skaffold delete -p pub
 $ helm del --purge stan
 ```
+
+## License
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fbalchua%2Fgonuts.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fbalchua%2Fgonuts?ref=badge_large)
