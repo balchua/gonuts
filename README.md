@@ -494,5 +494,7 @@ $ skaffold delete -p pub
 $ skaffold delete -p stan
 ```
 
+To Uninstall keda, follow the [guide](https://keda.sh/docs/2.0/deploy/#uninstall-2)
+
 ## License
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fbalchua%2Fgonuts.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fbalchua%2Fgonuts?ref=badge_large)
