@@ -493,7 +493,7 @@ Where:
 ```
 $ skaffold delete -p sub
 $ skaffold delete -p pub
-$ helm del --purge stan
+$ skaffold delete -p stan
 ```
 
 ## License
