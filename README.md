@@ -2,6 +2,8 @@
 
 This repo contains sample Go code to publish and subscribe message from [NATS Streaming](https://github.com/nats-io/nats-streaming-server) using [Keda](https://github.com/kedacore/keda) to autoscale the consumers.
 
+_*This project has been upgraded to use keda v2*_
+
 The publisher will continuously publish messages to NATS Streaming Server.
 
 The project is divided into several folders.
@@ -15,20 +17,32 @@ The project is divided into several folders.
   
 ## Pre-requisites
 
-* [skaffold](https://skaffold.dev/docs/) - Use to build and deploy the application to Kubernetes.
-* [helm](https://helm.sh/) - Kubernetes package manager.
+* [skaffold](https://skaffold.dev/docs/) - Use to build and deploy the application to Kubernetes.  Use version v1.16.0
+* [helm](https://helm.sh/) - Use v3. Kubernetes package manager.
 * Kubernetes cluster - such as [Microk8s](https://microk8s.io/), with API Aggregation Layer enabled, version preferrably >= 1.15.
 * kubectl
-* [keda](https://github.com/kedacore/keda)
+* [keda](https://github.com/kedacore/keda) - Use v2
 
 
 ## Getting Started
 
 ### 1. Install nats streaming statefulset.
 
-Go to directory `natss-chart`
+Make sure you are using helm v3.
+From the root directory.
 
-`helm install --namespace stan -n stan . `
+```
+$ skaffold deploy -p stan
+```
+
+Verify that nats streaming is running
+
+```
+$ kubectl -n stan get pods 
+NAME             READY   STATUS    RESTARTS   AGE
+stan-nats-ss-0   1/1     Running   0          82s
+```
+
 
 ### 2. Building the sources
 
@@ -46,57 +60,57 @@ Modify the docker registry repository in the `skaffold.yaml` file.  Example belo
 
 
 ```yaml
-apiVersion: skaffold/v1beta15
+apiVersion: skaffold/v2beta9
 kind: Config
 profiles:
-  - name: pub
-    build:
-      artifacts:
-      - image: <your-repo>/gonuts-pub
-        context: pub
-        kaniko:
-          dockerfile: Dockerfile
-          buildContext:
-            localDir: {}
-          cache:
-            repo: <your-repo>/gonuts-pub #for the layers in the Dockerfile
-      cluster:
-        dockerConfig: 
-          secretName: regcred
+- name: pub
+  build:
+    artifacts:
+    - image: 192.168.1.12:32000/gonuts-pub
+      context: pub
+      kaniko:
+        dockerfile: Dockerfile
+        cache:
+          repo: 192.168.1.12:32000/gonuts-pub
+    insecureRegistries:
+    - 192.168.1.12:32000
+    cluster:
+      namespace: gonuts
+      dockerConfig:
+        secretName: regcred
+  deploy:
+    helm:
+      releases:
+      - name: gonuts-pub
+        chartPath: k8s-manifest/pub
+        artifactOverrides:
+          image.repository: 192.168.1.12:32000/gonuts-pub
         namespace: gonuts
-    deploy:
-      helm:
-        releases:
-          - name: gonuts-pub
-            chartPath: k8s-manifest/pub
-            namespace: gonuts
-            wait: true
-            values: 
-              image.repository: <your-repo>/gonuts-pub
-
-  - name: sub
-    build:
-      artifacts:
-      - image: <your-repo>/gonuts-sub
-        context: sub
-        kaniko:
-          dockerfile: Dockerfile
-          buildContext:
-            localDir: {}
-          cache:
-            repo: <your-repo>/gonuts-sub          
-      cluster:
-        dockerConfig: 
-          secretName: regcred
+        wait: true
+- name: sub
+  build:
+    artifacts:
+    - image: 192.168.1.12:32000/gonuts-sub
+      context: sub
+      kaniko:
+        dockerfile: Dockerfile
+        cache:
+          repo: 192.168.1.12:32000/gonuts-sub
+    insecureRegistries:
+    - 192.168.1.12:32000
+    cluster:
+      namespace: gonuts
+      dockerConfig:
+        secretName: regcred
+  deploy:
+    helm:
+      releases:
+      - name: gonuts-sub
+        chartPath: k8s-manifest/sub
+        artifactOverrides:
+          image.repository: 192.168.1.12:32000/gonuts-sub
         namespace: gonuts
-    deploy:
-      helm:
-        releases:
-          - name: gonuts-sub
-            chartPath: k8s-manifest/sub
-            namespace: gonuts
-            values: 
-              image.repository: <your-repo>/gonuts-sub
+        wait: true
 
 ```
 
@@ -112,19 +126,52 @@ You should see some logs which looks like this.
 
 $ skaffold run -p pub
 Generating tags...
- - 192.168.1.12:32000/gonuts-sub -> 192.168.1.12:32000/gonuts-sub:5ab46ba
+ - 192.168.1.12:32000/gonuts-pub -> 192.168.1.12:32000/gonuts-pub:c0ce3d6-dirty
 Checking cache...
- - 192.168.1.12:32000/gonuts-sub: Not found. Building
+ - 192.168.1.12:32000/gonuts-pub: Not found. Building
 Creating docker config secret [regcred]...
-Building [192.168.1.12:32000/gonuts-sub]...
-Storing build context at /tmp/context-f42376857262386c48fc128506c21176.tar.gz
-INFO[0000] Resolved base name golang:1.12.10 to golang:1.12.10 
-INFO[0000] Resolved base name gcr.io/distroless/base to gcr.io/distroless/base 
-INFO[0000] Resolved base name golang:1.12.10 to golang:1.12.10 
-INFO[0000] Resolved base name gcr.io/distroless/base to gcr.io/distroless/base 
-INFO[0000] Downloading base image golang:1.12.10        
-INFO[0003] Error while retrieving image from cache: getting file info: stat /cache/sha256:e699a540de350a0993ce3a3f8238161e5c26bbf728bffe1dc1f75952a987ea30: no such file or directory 
-INFO[0003] Downloading base image golang:1.12.10        
+Building [192.168.1.12:32000/gonuts-pub]...
+E1031 01:52:47.968630       1 aws_credentials.go:77] while getting AWS credentials NoCredentialProviders: no valid providers in chain. Deprecated.
+	For verbose messaging see aws.Config.CredentialsChainVerboseErrors
+INFO[0006] Resolved base name golang:1.15.3 to build    
+INFO[0006] Retrieving image manifest golang:1.15.3      
+INFO[0006] Retrieving image golang:1.15.3               
+INFO[0009] Retrieving image manifest golang:1.15.3      
+INFO[0009] Retrieving image golang:1.15.3               
+INFO[0012] Retrieving image manifest gcr.io/distroless/base:debug 
+. . . .
+github.com/nats-io/nats.go/encoders/builtin
+golang.org/x/crypto/ed25519
+github.com/nats-io/nuid
+net
+github.com/gogo/protobuf/proto
+github.com/nats-io/nkeys
+crypto/x509
+crypto/tls
+github.com/gogo/protobuf/protoc-gen-gogo/descriptor
+github.com/gogo/protobuf/gogoproto
+github.com/nats-io/stan.go/pb
+github.com/nats-io/nats.go/util
+github.com/nats-io/nats.go
+github.com/nats-io/stan.go
+github.com/balchua/gonuts/pub
+INFO[0060] Taking snapshot of full filesystem...        
+INFO[0063] Pushing layer 192.168.1.12:32000/gonuts-pub:f60f6e0b1e43b1111d97637bb55947f5046d147feedce1f3187f4de7f3d11b67 to cache now 
+INFO[0065] Saving file app for later use                
+INFO[0065] Deleting filesystem...                       
+INFO[0066] Retrieving image manifest gcr.io/distroless/base:debug 
+INFO[0066] Retrieving image gcr.io/distroless/base:debug 
+INFO[0067] Retrieving image manifest gcr.io/distroless/base:debug 
+INFO[0067] Retrieving image gcr.io/distroless/base:debug 
+INFO[0069] Executing 0 build triggers                   
+INFO[0069] Unpacking rootfs as cmd COPY --from=build /app /app requires it. 
+INFO[0071] COPY --from=build /app /app                  
+INFO[0071] Taking snapshot of files...                  
+INFO[0071] ENV GOTRACEBACK=all                          
+INFO[0071] No files changed in this command, skipping snapshotting. 
+INFO[0071] ENTRYPOINT ["/app", "-s", "nats://stan-nats-ss.stan.svc.cluster.local:4222", "Test"] 
+. . . . 
+     
 
 ```
 
@@ -133,30 +180,17 @@ INFO[0003] Downloading base image golang:1.12.10
 ```shell
 Starting deploy...
 Helm release gonuts-pub not installed. Installing...
-No requirements found in k8s-manifest/pub/charts.
-WARN[0113] image [balchu/gonuts-pub:0.0.1@sha256:1b9517a25cd8084f608a30b8307d92f07c88c52f6d9dd41832b576f7ff216b0d] is not used. 
-WARN[0113] image [balchu/gonuts-pub] is used instead.   
-WARN[0113] See helm sample for how to replace image names with their actual tags: https://github.com/GoogleContainerTools/skaffold/blob/master/examples/helm-deployment/skaffold.yaml 
-NAME:   gonuts-pub
-LAST DEPLOYED: Tue Oct 15 07:52:58 2019
+NAME: gonuts-pub
+LAST DEPLOYED: Sat Oct 31 10:17:22 2020
 NAMESPACE: gonuts
-STATUS: DEPLOYED
-
-RESOURCES:
-==> v1/Deployment
-NAME        READY  UP-TO-DATE  AVAILABLE  AGE
-gonuts-pub  1/1    1           1          2s
-
-==> v1/Pod(related)
-NAME                         READY  STATUS   RESTARTS  AGE
-gonuts-pub-75fbd86dd8-5z6b8  1/1    Running  0         2s
-
-
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
 NOTES:
 1. Get the application URL by running these commands:
-
-
-Deploy complete in 3.156392449s
+Waiting for deployments to stabilize...
+ - gonuts:deployment/gonuts-pub is ready.
+Deployments stabilized in 1.413569237s  
 
 
 $ kubectl -n gonuts get pods
@@ -176,74 +210,65 @@ You should see something in the console which looks like this.
 ```shell
 $ skaffold run -p sub
 Generating tags...
- - balchu/gonuts-sub -> balchu/gonuts-sub:0.0.1
-Tags generated in 141.748µs
+ - 192.168.1.12:32000/gonuts-sub -> 192.168.1.12:32000/gonuts-sub:c0ce3d6-dirty
 Checking cache...
- - balchu/gonuts-sub: Not found. Building
-Cache check complete in 7.332088677s
-Starting build...
+ - 192.168.1.12:32000/gonuts-sub: Not found. Building
 Creating docker config secret [regcred]...
-Building [balchu/gonuts-sub]...
-Storing build context at /tmp/context-bef52d86051b333caeb3cdedb87edd64.tar.gz
-INFO[0003] Resolved base name golang:1.12.10 to golang:1.12.10 
-INFO[0003] Resolved base name gcr.io/distroless/base to gcr.io/distroless/base 
-INFO[0003] Resolved base name golang:1.12.10 to golang:1.12.10 
-INFO[0003] Resolved base name gcr.io/distroless/base to gcr.io/distroless/base 
-INFO[0003] Downloading base image golang:1.12.10        
-INFO[0006] Error while retrieving image from cache: getting file info: stat /cache/sha256:e699a540de350a0993ce3a3f8238161e5c26bbf728bffe1dc1f75952a987ea30: no such file or directory 
-INFO[0006] Downloading base image golang:1.12.10        
-INFO[0009] Downloading base image gcr.io/distroless/base 
-INFO[0010] Error while retrieving image from cache: getting file info: stat /cache/sha256:e37cf3289c1332c5123cbf419a1657c8dad0811f2f8572433b668e13747718f8: no such file or directory 
-INFO[0010] Downloading base image gcr.io/distroless/base 
-INFO[0011] Built cross stage deps: map[0:[/app]]        
-INFO[0011] Downloading base image golang:1.12.10        
-INFO[0014] Error while retrieving image from cache: getting file info: stat /cache/sha256:e699a540de350a0993ce3a3f8238161e5c26bbf728bffe1dc1f75952a987ea30: no such file or directory 
-INFO[0014] Downloading base image golang:1.12.10        
-INFO[0016] Using files from context: [/kaniko/buildcontext/go.mod] 
-INFO[0016] Using files from context: [/kaniko/buildcontext/go.sum] 
-INFO[0016] Checking for cached layer balchu/gonuts-sub:70bc38fd8a7ca199781341718b0189eeba1bedcb38a2769fa3de737e8f29c2f2... 
-INFO[0019] Using caching version of cmd: RUN go mod download 
-INFO[0019] Using files from context: [/kaniko/buildcontext/main.go] 
-INFO[0019] Checking for cached layer balchu/gonuts-sub:9c3409edd1ca5b909af4d63af1f1e93e9c6c71d1a225f913a54f8d4140bbf7d6... 
-INFO[0021] No cached layer found for cmd RUN go build -o /app -v . 
-INFO[0021] Unpacking rootfs as cmd RUN go build -o /app -v . requires it. 
+Building [192.168.1.12:32000/gonuts-sub]...
+E1031 02:19:59.968604       1 aws_credentials.go:77] while getting AWS credentials NoCredentialProviders: no valid providers in chain. Deprecated.
+	For verbose messaging see aws.Config.CredentialsChainVerboseErrors
+INFO[0006] Resolved base name golang:1.15.3 to build    
+INFO[0006] Retrieving image manifest golang:1.15.3      
+INFO[0006] Retrieving image golang:1.15.3               
+INFO[0013] Retrieving image manifest golang:1.15.3      
+INFO[0013] Retrieving image golang:1.15.3               
+INFO[0017] Retrieving image manifest gcr.io/distroless/base 
+INFO[0017] Retrieving image gcr.io/distroless/base      
+INFO[0018] Retrieving image manifest gcr.io/distroless/base 
+INFO[0018] Retrieving image gcr.io/distroless/base      
+INFO[0021] Built cross stage deps: map[0:[/app]]        
+INFO[0021] Retrieving image manifest golang:1.15.3      
+INFO[0021] Retrieving image golang:1.15.3               
+INFO[0024] Retrieving image manifest golang:1.15.3      
+INFO[0024] Retrieving image golang:1.15.3               
+INFO[0027] Executing 0 build triggers                   
+INFO[0027] Using files from context: [/kaniko/buildcontext/go.mod] 
+INFO[0027] Using files from context: [/kaniko/buildcontext/go.sum] 
+INFO[0027] Checking for cached layer 192.168.1.12:32000/gonuts-sub:c272aee5d3a35296e11ece19cf269d1372497a75a04a99b69345abc2fcc7b0c3... 
+INFO[0027] No cached layer found for cmd RUN go mod download 
+INFO[0027] Unpacking rootfs as cmd ADD ./go.mod /src/github.com/balchua/gonuts/ requires it. 
+INFO[0049] WORKDIR /src/github.com/balchua/gonuts       
+INFO[0049] cmd: workdir                                 
+INFO[0049] Changed working directory to /src/github.com/balchua/gonuts 
+INFO[0049] Creating directory /src/github.com/balchua/gonuts 
+INFO[0049] Taking snapshot of files...                  
+INFO[0049] Using files from context: [/kaniko/buildcontext/go.mod] 
+INFO[0049] ADD ./go.mod /src/github.com/balchua/gonuts/ 
+INFO[0049] Taking snapshot of files...                  
+INFO[0049] Using files from context: [/kaniko/buildcontext/go.sum] 
+INFO[0049] ADD ./go.sum /src/github.com/balchua/gonuts/ 
+INFO[0049] Taking snapshot of files...                  
+
 
 ```
 
 Afterwards the subscriber application is successfully deployed.
 
 ```shell
-Build complete in 1m28.406449903s
-Starting test...
-Test complete in 20.279µs
-Tags used in deployment:
- - balchu/gonuts-sub -> balchu/gonuts-sub:0.0.1@sha256:c72b358f759278859e00c9e80d9bc41fe6ffa33f6bd724186f963497bbf4d561
-Starting deploy...
 Helm release gonuts-sub not installed. Installing...
-No requirements found in k8s-manifest/sub/charts.
-WARN[0096] image [balchu/gonuts-sub:0.0.1@sha256:c72b358f759278859e00c9e80d9bc41fe6ffa33f6bd724186f963497bbf4d561] is not used. 
-WARN[0096] image [balchu/gonuts-sub] is used instead.   
-WARN[0096] See helm sample for how to replace image names with their actual tags: https://github.com/GoogleContainerTools/skaffold/blob/master/examples/helm-deployment/skaffold.yaml 
-NAME:   gonuts-sub
-LAST DEPLOYED: Tue Oct 15 08:09:54 2019
+NAME: gonuts-sub
+LAST DEPLOYED: Sat Oct 31 10:21:08 2020
 NAMESPACE: gonuts
-STATUS: DEPLOYED
-
-RESOURCES:
-==> v1/Deployment
-NAME        READY  UP-TO-DATE  AVAILABLE  AGE
-gonuts-sub  0/1    0           0          0s
-
-==> v1/Pod(related)
-NAME                         READY  STATUS   RESTARTS  AGE
-gonuts-sub-55495c99cb-hr28q  0/1    Pending  0         0s
-
-
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
 NOTES:
 1. Get the application URL by running these commands:
+Waiting for deployments to stabilize...
+ - gonuts:deployment/gonuts-sub is ready.
+Deployments stabilized in 1.28934836s
+You can also run [skaffold run --tail] to get the logs
 
-
-Deploy complete in 965.091545ms
 
 $ kubectl -n gonuts get pods
 NAME                          READY   STATUS    RESTARTS   AGE
@@ -256,35 +281,34 @@ gonuts-sub-55495c99cb-hr28q   1/1     Running   0          30s
 ```shell
 
 $ kubectl -n gonuts logs -f gonuts-sub-55495c99cb-hr28q 
-Client ID is 1571098195710672840
-Connected to nats://stan-nats-ss.stan.svc.cluster.local:4222 clusterID: [local-stan] clientID: [1571098195710672840]
-Listening on [Test], clientID=[1571098195710672840], qgroup=[grp1] durable=[ImDurable]
-[#1] Received: sequence:1 subject:"Test" data:"Message is : 2019-10-14 23:53:00.253880875 +0000 UTC m=+0.011842249" timestamp:1571097180254174208 
-[#2] Received: sequence:2 subject:"Test" data:"Message is : 2019-10-14 23:53:00.769166147 +0000 UTC m=+0.527127679" timestamp:1571097180769799144 
-[#3] Received: sequence:3 subject:"Test" data:"Message is : 2019-10-14 23:53:01.278711647 +0000 UTC m=+1.036673208" timestamp:1571097181279410272 
-[#4] Received: sequence:4 subject:"Test" data:"Message is : 2019-10-14 23:53:01.788774307 +0000 UTC m=+1.546735690" timestamp:1571097181789001470 
-[#5] Received: sequence:5 subject:"Test" data:"Message is : 2019-10-14 23:53:02.295029913 +0000 UTC m=+2.052991385" timestamp:1571097182295624638 
-[#6] Received: sequence:6 subject:"Test" data:"Message is : 2019-10-14 23:53:02.804475168 +0000 UTC m=+2.562436662" timestamp:1571097182805155109 
-[#7] Received: sequence:7 subject:"Test" data:"Message is : 2019-10-14 23:53:03.313488105 +0000 UTC m=+3.071449602" timestamp:1571097183314223852 
-[#8] Received: sequence:8 subject:"Test" data:"Message is : 2019-10-14 23:53:03.824778499 +0000 UTC m=+3.582740077" timestamp:1571097183825354528 
-[#9] Received: sequence:9 subject:"Test" data:"Message is : 2019-10-14 23:53:04.333812324 +0000 UTC m=+4.091773798" timestamp:1571097184334662435 
-[#10] Received: sequence:10 subject:"Test" data:"Message is : 2019-10-14 23:53:04.843043309 +0000 UTC m=+4.601004807" timestamp:1571097184843811709 
-[#11] Received: sequence:11 subject:"Test" data:"Message is : 2019-10-14 23:53:05.352658775 +0000 UTC m=+5.110620353" timestamp:1571097185353256363 
-[#12] Received: sequence:12 subject:"Test" data:"Message is : 2019-10-14 23:53:05.861342784 +0000 UTC m=+5.619304279" timestamp:1571097185861954607 
-[#13] Received: sequence:13 subject:"Test" data:"Message is : 2019-10-14 23:53:06.371526442 +0000 UTC m=+6.129487956" timestamp:1571097186372047182 
-[#14] Received: sequence:14 subject:"Test" data:"Message is : 2019-10-14 23:53:06.878906799 +0000 UTC m=+6.636868299" timestamp:1571097186879544355 
-[#15] Received: sequence:15 subject:"Test" data:"Message is : 2019-10-14 23:53:07.385460833 +0000 UTC m=+7.143422383" timestamp:1571097187386228503 
-[#16] Received: sequence:16 subject:"Test" data:"Message is : 2019-10-14 23:53:07.892033689 +0000 UTC m=+7.649995236" timestamp:1571097187892522959 
-[#17] Received: sequence:17 subject:"Test" data:"Message is : 2019-10-14 23:53:08.397821951 +0000 UTC m=+8.155783439" timestamp:1571097188398585249 
-[#18] Received: sequence:18 subject:"Test" data:"Message is : 2019-10-14 23:53:08.904641497 +0000 UTC m=+8.662602992" timestamp:1571097188905298883 
-[#19] Received: sequence:19 subject:"Test" data:"Message is : 2019-10-14 23:53:09.411199672 +0000 UTC m=+9.169161147" timestamp:1571097189411784820 
-[#20] Received: sequence:20 subject:"Test" data:"Message is : 2019-10-14 23:53:09.91938099 +0000 UTC m=+9.677342489" timestamp:1571097189920038609 
-[#21] Received: sequence:21 subject:"Test" data:"Message is : 2019-10-14 23:53:10.426261076 +0000 UTC m=+10.184222622" timestamp:1571097190426920141 
-[#22] Received: sequence:22 subject:"Test" data:"Message is : 2019-10-14 23:53:10.932787271 +0000 UTC m=+10.690748800" timestamp:1571097190933297474 
-[#23] Received: sequence:23 subject:"Test" data:"Message is : 2019-10-14 23:53:11.438715414 +0000 UTC m=+11.196676999" timestamp:1571097191439532219 
-[#24] Received: sequence:24 subject:"Test" data:"Message is : 2019-10-14 23:53:11.945399373 +0000 UTC m=+11.703360969" timestamp:1571097191945971410 
-[#25] Received: sequence:25 subject:"Test" data:"Message is : 2019-10-14 23:53:12.458382509 +0000 UTC m=+12.216343995" timestamp:1571097192458873823 
-[#26] Received: sequence:26 subject:"Test" data:"Message is : 2019-10-14 23:53:12.968315244 +0000 UTC m=+12.726276708" timestamp:1571097192968837373 
+Client ID is 1604110869763282645
+Connected to nats://stan-nats-ss.stan.svc.cluster.local:4222 clusterID: [local-stan] clientID: [1604110869763282645]
+Listening on [Test], clientID=[1604110869763282645], qgroup=[grp1] durable=[ImDurable]
+[#1] Received: sequence:475 subject:"Test" data:"Message is : 2020-10-31 02:21:09.950956691 +0000 UTC m=+226.009217578" timestamp:1604110869951160516 
+[#2] Received: sequence:476 subject:"Test" data:"Message is : 2020-10-31 02:21:10.460821108 +0000 UTC m=+226.519082124" timestamp:1604110870461246187 
+[#3] Received: sequence:477 subject:"Test" data:"Message is : 2020-10-31 02:21:10.969098067 +0000 UTC m=+227.027359057" timestamp:1604110870969558237 
+[#4] Received: sequence:478 subject:"Test" data:"Message is : 2020-10-31 02:21:11.475637567 +0000 UTC m=+227.533898578" timestamp:1604110871476110536 
+[#5] Received: sequence:479 subject:"Test" data:"Message is : 2020-10-31 02:21:11.982656597 +0000 UTC m=+228.040917627" timestamp:1604110871983130403 
+[#6] Received: sequence:480 subject:"Test" data:"Message is : 2020-10-31 02:21:12.490413572 +0000 UTC m=+228.548674564" timestamp:1604110872490996118 
+[#7] Received: sequence:481 subject:"Test" data:"Message is : 2020-10-31 02:21:12.999504956 +0000 UTC m=+229.057765958" timestamp:1604110873000274816 
+[#8] Received: sequence:482 subject:"Test" data:"Message is : 2020-10-31 02:21:13.508621089 +0000 UTC m=+229.566882000" timestamp:1604110873508890863 
+[#9] Received: sequence:483 subject:"Test" data:"Message is : 2020-10-31 02:21:14.014100946 +0000 UTC m=+230.072361830" timestamp:1604110874014319383 
+[#10] Received: sequence:484 subject:"Test" data:"Message is : 2020-10-31 02:21:14.519517361 +0000 UTC m=+230.577778496" timestamp:1604110874520109861 
+[#11] Received: sequence:485 subject:"Test" data:"Message is : 2020-10-31 02:21:15.025881262 +0000 UTC m=+231.084142288" timestamp:1604110875026322690 
+[#12] Received: sequence:486 subject:"Test" data:"Message is : 2020-10-31 02:21:15.53233631 +0000 UTC m=+231.590597396" timestamp:1604110875532910570 
+[#13] Received: sequence:487 subject:"Test" data:"Message is : 2020-10-31 02:21:16.042193082 +0000 UTC m=+232.100454069" timestamp:1604110876042678078 
+[#14] Received: sequence:488 subject:"Test" data:"Message is : 2020-10-31 02:21:16.548750654 +0000 UTC m=+232.607011699" timestamp:1604110876549303234 
+[#15] Received: sequence:489 subject:"Test" data:"Message is : 2020-10-31 02:21:17.055079978 +0000 UTC m=+233.113340949" timestamp:1604110877055623442 
+[#16] Received: sequence:490 subject:"Test" data:"Message is : 2020-10-31 02:21:17.560853054 +0000 UTC m=+233.619114038" timestamp:1604110877561431724 
+[#17] Received: sequence:491 subject:"Test" data:"Message is : 2020-10-31 02:21:18.067055717 +0000 UTC m=+234.125316734" timestamp:1604110878067530215 
+[#18] Received: sequence:492 subject:"Test" data:"Message is : 2020-10-31 02:21:18.572877241 +0000 UTC m=+234.631138219" timestamp:1604110878573454006 
+[#19] Received: sequence:493 subject:"Test" data:"Message is : 2020-10-31 02:21:19.079877334 +0000 UTC m=+235.138138306" timestamp:1604110879080454252 
+[#20] Received: sequence:494 subject:"Test" data:"Message is : 2020-10-31 02:21:19.587194439 +0000 UTC m=+235.645455367" timestamp:1604110879587422308 
+[#21] Received: sequence:495 subject:"Test" data:"Message is : 2020-10-31 02:21:20.093883361 +0000 UTC m=+236.152144375" timestamp:1604110880094427736 
+[#22] Received: sequence:496 subject:"Test" data:"Message is : 2020-10-31 02:21:20.599528333 +0000 UTC m=+236.657789400" timestamp:1604110880600084393 
+[#23] Received: sequence:497 subject:"Test" data:"Message is : 2020-10-31 02:21:21.109621159 +0000 UTC m=+237.167882147" timestamp:1604110881110171335 
+[#24] Received: sequence:498 subject:"Test" data:"Message is : 2020-10-31 02:21:21.616687622 +0000 UTC m=+237.674948609" timestamp:1604110881617122514 
+
 ```
 #### Install Keda
 
@@ -301,21 +325,49 @@ keda-67df4596b6-4zkgr   1/1     Running   0          6s
 
 #### Apply the [`keda-nats-scaler/stan_scaledobject.yaml`](keda-nats-scaler/stan_scaledobject.yaml)
 
+```
+$ kubectl apply -f keda-nats-scaler/stan_scaledobject.yaml
+```
+
+Check that the `ScaledObject ` is properly installed.
+
+```
+$ kubectl -n gonuts get scaledobject
+NAME                SCALETARGETKIND      SCALETARGETNAME   TRIGGERS   AUTHENTICATION   READY   ACTIVE   AGE
+stan-scaledobject   apps/v1.Deployment   gonuts-sub        stan                        True    True     86s
+```
+
 After applying the scaler, you should see the pods scale up.
 
 ```shell
 $ kubectl -n gonuts get pods
-NAME                          READY   STATUS              RESTARTS   AGE
-gonuts-pub-75fbd86dd8-5z6b8   1/1     Running             0          30m
-gonuts-sub-55495c99cb-76nwr   0/1     ContainerCreating   0          1s
-gonuts-sub-55495c99cb-h6rtz   1/1     Running             0          17s
-gonuts-sub-55495c99cb-hm76r   0/1     ContainerCreating   0          1s
-gonuts-sub-55495c99cb-hr28q   1/1     Running             0          13m
-gonuts-sub-55495c99cb-qk8bq   1/1     Running             0          17s
-gonuts-sub-55495c99cb-sdblq   0/1     ContainerCreating   0          1s
-gonuts-sub-55495c99cb-stbvq   1/1     Running             0          17s
-gonuts-sub-55495c99cb-wnm4n   0/1     ContainerCreating   0          1s
+NAME                          READY   STATUS    RESTARTS   AGE
+gonuts-pub-cd6d75b8f-brsjj    1/1     Running   0          13m
+gonuts-sub-5fbcb7765f-bgddz   1/1     Running   0          9m41s
+gonuts-sub-5fbcb7765f-npd6n   1/1     Running   0          40s
+gonuts-sub-5fbcb7765f-lsvnx   1/1     Running   0          40s
+gonuts-sub-5fbcb7765f-b69kl   1/1     Running   0          40s
+gonuts-sub-5fbcb7765f-ml5z8   1/1     Running   0          24s
+gonuts-sub-5fbcb7765f-z8qll   1/1     Running   0          24s
+gonuts-sub-5fbcb7765f-fjbr2   1/1     Running   0          24s
+gonuts-sub-5fbcb7765f-kg9vs   1/1     Running   0          24s
+gonuts-sub-5fbcb7765f-wcltj   1/1     Running   0          9s
+gonuts-sub-5fbcb7765f-fwp85   1/1     Running   0          9s
+gonuts-sub-5fbcb7765f-gjwfk   1/1     Running   0          9s
+gonuts-sub-5fbcb7765f-gkfnb   1/1     Running   0          9s
+gonuts-sub-5fbcb7765f-xrb5p   1/1     Running   0          9s
+gonuts-sub-5fbcb7765f-vk9mq   1/1     Running   0          9s
+gonuts-sub-5fbcb7765f-q49f8   1/1     Running   0          9s
+gonuts-sub-5fbcb7765f-r8c8f   1/1     Running   0          9s
 
+```
+
+Check the Horizontal Pod Autoscaler status
+
+```
+$ kubectl -n gonuts get hpa
+NAME                         REFERENCE               TARGETS           MINPODS   MAXPODS   REPLICAS   AGE
+keda-hpa-stan-scaledobject   Deployment/gonuts-sub   28367m/10 (avg)   1         30        30         94s
 ```
 
 ## Changing the production rate of messages

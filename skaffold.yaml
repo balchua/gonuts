@@ -1,59 +1,67 @@
-apiVersion: skaffold/v1beta16
+apiVersion: skaffold/v2beta9
 kind: Config
 profiles:
-  - name: pub
-    build:
-      insecureRegistries: #Use this for local registry.  such as microk8s registry.
-      - 192.168.1.12:32000 
-      artifacts:
-      - image: 192.168.1.12:32000/gonuts-pub
-        context: pub
-        kaniko:
-          dockerfile: Dockerfile
-          buildContext:
-            localDir: {}
-          cache:
-            repo: 192.168.1.12:32000/gonuts-pub #for the layers in the Dockerfile
-      cluster:
-        dockerConfig: 
-          secretName: regcred
+- name: pub
+  build:
+    artifacts:
+    - image: 192.168.1.12:32000/gonuts-pub
+      context: pub
+      kaniko:
+        dockerfile: Dockerfile
+        cache:
+          repo: 192.168.1.12:32000/gonuts-pub
+    insecureRegistries:
+    - 192.168.1.12:32000
+    cluster:
+      namespace: gonuts
+      dockerConfig:
+        secretName: regcred
+  deploy:
+    helm:
+      releases:
+      - name: gonuts-pub
+        chartPath: k8s-manifest/pub
+        artifactOverrides:
+          image.repository: 192.168.1.12:32000/gonuts-pub
         namespace: gonuts
-    deploy:
-      helm:
-        releases:
-          - name: gonuts-pub
-            chartPath: k8s-manifest/pub
-            namespace: gonuts
-            wait: true
-            values:
-              image.repository: 192.168.1.12:32000/gonuts-pub
-
-
-  - name: sub
-    build:
-      insecureRegistries: #Use this for local registry.  such as microk8s registry.
-      - 192.168.1.12:32000 
-      artifacts:
-      - image: 192.168.1.12:32000/gonuts-sub
-        context: sub
-        kaniko:
-          dockerfile: Dockerfile
-          buildContext:
-            localDir: {}
-          cache:
-            repo: 192.168.1.12:32000/gonuts-sub          
-      cluster:
-        dockerConfig: 
-          secretName: regcred
+        wait: true
+- name: sub
+  build:
+    artifacts:
+    - image: 192.168.1.12:32000/gonuts-sub
+      context: sub
+      kaniko:
+        dockerfile: Dockerfile
+        cache:
+          repo: 192.168.1.12:32000/gonuts-sub
+    insecureRegistries:
+    - 192.168.1.12:32000
+    cluster:
+      namespace: gonuts
+      dockerConfig:
+        secretName: regcred
+  deploy:
+    helm:
+      releases:
+      - name: gonuts-sub
+        chartPath: k8s-manifest/sub
+        artifactOverrides:
+          image.repository: 192.168.1.12:32000/gonuts-sub
         namespace: gonuts
-    deploy:
-      helm:
-        releases:
-          - name: gonuts-sub
-            chartPath: k8s-manifest/sub
-            namespace: gonuts
-            wait: true
-            values:
-              image.repository: 192.168.1.12:32000/gonuts-sub
+        wait: true
 
+- name: stan
+  deploy:
+    helm:
+      releases:
+        - name: stan
+          chartPath: natss-chart
+          namespace: stan
+          wait: true
+          createNamespace: true
+          valuesFiles:
+            - natss-chart/values.yaml
+      flags:
+        upgrade:
+          - --install
 
