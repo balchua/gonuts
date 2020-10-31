@@ -489,26 +489,7 @@ Where:
 ### Clean up
 
 ```
-$ skaffold delete -p subapiVersion: keda.sh/v1alpha1 
-kind: ScaledObject
-metadata:
-  name: stan-scaledobject
-  namespace: gonuts
-spec:
-  pollingInterval: 10   # Optional. Default: 30 seconds
-  cooldownPeriod: 30   # Optional. Default: 300 seconds
-  minReplicaCount: 0   # Optional. Default: 0
-  maxReplicaCount: 30  # Optional. Default: 100  
-  scaleTargetRef:
-    name: gonuts-sub
-  triggers:
-  - type: stan
-    metadata:
-      natsServerMonitoringEndpoint: "stan-nats-ss.stan.svc.cluster.local:8222"
-      queueGroup: "grp1"
-      durableName: "ImDurable"
-      subject: "Test"
-      lagThreshold: "10"
+$ skaffold delete -p sub
 $ skaffold delete -p pub
 $ skaffold delete -p stan
 ```
