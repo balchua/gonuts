@@ -47,6 +47,7 @@ func main() {
 		URL       string
 		userCreds string
 		delay     int
+		limit     int
 	)
 
 	flag.StringVar(&URL, "s", stan.DefaultNatsURL, "The nats server URLs (separated by comma)")
@@ -57,6 +58,7 @@ func main() {
 	flag.StringVar(&userCreds, "creds", "", "Credentials File")
 	flag.IntVar(&delay, "d", 1000, "Delay in seconds between publishing message")
 	flag.IntVar(&delay, "delay", 1000, "Delay in seconds between publishing message")
+	flag.IntVar(&limit, "limit", -1, "Limit the number of messages to publish. Once this is reached, the publisher will no longer publish messages. -1 means no limit.")
 
 	log.SetFlags(0)
 	flag.Usage = usage
@@ -92,14 +94,29 @@ func main() {
 
 	subj := args[0]
 
+	msgPublishedCount := 0
+
+	var publishMsg = true
 	for {
-		t := time.Now()
-		msg := []byte("Message is : " + t.String())
-		err = sc.Publish(subj, msg)
-		if err != nil {
-			log.Fatalf("Error during publish: %v\n", err)
+		if limit > 0 {
+			if msgPublishedCount >= limit {
+				publishMsg = false
+			}
 		}
-		log.Printf("Published [%s] : '%s'\n", subj, msg)
-		time.Sleep(time.Duration(delay) * time.Millisecond)
+
+		if publishMsg {
+			t := time.Now()
+			msg := []byte("Message is : " + t.String())
+			err = sc.Publish(subj, msg)
+			if err != nil {
+				log.Fatalf("Error during publish: %v\n", err)
+			}
+			log.Printf("Published [%s] : '%s'\n", subj, msg)
+			time.Sleep(time.Duration(delay) * time.Millisecond)
+			msgPublishedCount++
+		} else {
+			log.Println("Reached publishing limit, stop publishing.")
+		}
+
 	}
 }

@@ -4,15 +4,15 @@
 
 This repo contains sample Go code to publish and subscribe message from [NATS Streaming](https://github.com/nats-io/nats-streaming-server) using [Keda](https://github.com/kedacore/keda) to autoscale the consumers.
 
-_*This project has been upgraded to use keda v2*_
+***This project has been upgraded to use keda v2***
 
 The publisher will continuously publish messages to NATS Streaming Server.
 
 The project is divided into several folders.
 
-* `natss-chart` - Contains the helm chart to install Nats Streaming server.
-* `pub` - contains the publisher code.
-* `sub` - contains the subscriber code.
+* [`natss-chart`](natss-chart/) - Contains the helm chart to install Nats Streaming server.
+* [`pub`](pub/main.go) - contains the publisher code.
+* [`sub`](sub/main.go) - contains the subscriber code.
 * [`k8s-manifest/pub`](./k8s-manifest/pub/values.yaml) - contains the Helm chart to deploy the publisher.
 * [`k8s-manifest/sub`](./k8s-manifest/sub/values.yaml) - contains the Helm chart to deploy the subscriber.
 * [`keda-nats-scaler`](./keda-nats-scaler/stan_scaledobject.yaml) - contains the `ScaledObject` to feed Keda for autoscaling.
@@ -47,8 +47,6 @@ stan-nats-ss-0   1/1     Running   0          82s
 
 
 ### 2. Building the sources
-
-Since we are using skaffold to quickly build and deploy the application, we are going to use the `envTemplate` `PUB_TAG` tag.  For more information on using skaffold Taggers [here](https://skaffold.dev/docs/how-tos/taggers/).
 
 
 **We use kaniko with skaffold to build our container image in-cluster**
