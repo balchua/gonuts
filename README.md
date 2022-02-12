@@ -203,7 +203,7 @@ gonuts-pub-75fbd86dd8-5z6b8   1/1     Running   0          51s
 
 To install the publisher application, the process is the same, simply run the command below.
 
-`skaffold build -p sub`
+`skaffold run -p sub`
 
 You should see something in the console which looks like this.
 

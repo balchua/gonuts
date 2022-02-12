@@ -4,14 +4,14 @@ profiles:
 - name: pub
   build:
     artifacts:
-    - image: 192.168.1.12:32000/gonuts-pub
+    - image: 192.168.2.15:32000/gonuts-pub
       context: pub
       kaniko:
         dockerfile: Dockerfile
         cache:
-          repo: 192.168.1.12:32000/gonuts-pub
+          repo: 192.168.2.15:32000/gonuts-pub
     insecureRegistries:
-    - 192.168.1.12:32000
+    - 192.168.2.15:32000
     cluster:
       namespace: gonuts
       dockerConfig:
@@ -22,20 +22,20 @@ profiles:
       - name: gonuts-pub
         chartPath: k8s-manifest/pub
         artifactOverrides:
-          image.repository: 192.168.1.12:32000/gonuts-pub
+          image.repository: 192.168.2.15:32000/gonuts-pub
         namespace: gonuts
         wait: true
 - name: sub
   build:
     artifacts:
-    - image: 192.168.1.12:32000/gonuts-sub
+    - image: 192.168.2.15:32000/gonuts-sub
       context: sub
       kaniko:
         dockerfile: Dockerfile
         cache:
-          repo: 192.168.1.12:32000/gonuts-sub
+          repo: 192.168.2.15:32000/gonuts-sub
     insecureRegistries:
-    - 192.168.1.12:32000
+    - 192.168.2.15:32000
     cluster:
       namespace: gonuts
       dockerConfig:
@@ -46,7 +46,7 @@ profiles:
       - name: gonuts-sub
         chartPath: k8s-manifest/sub
         artifactOverrides:
-          image.repository: 192.168.1.12:32000/gonuts-sub
+          image.repository: 192.168.2.15:32000/gonuts-sub
         namespace: gonuts
         wait: true
 
